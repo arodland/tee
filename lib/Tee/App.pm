@@ -72,12 +72,17 @@ sub run {
   # Setup list of filehandles
   #--------------------------------------------------------------------------#
 
+  my $stdin = IO::Handle->new->fdopen(fileno(STDIN),"r");
+  binmode($stdin, ':bytes');
+
   my $stdout = IO::Handle->new->fdopen(fileno(STDOUT),"w");
+  binmode($stdout, ':bytes');
   my @files = $stdout;
 
   for my $file ( @ARGV ) {
       my $f = IO::File->new("$mode $file") 
           or die "Could't open '$file' for writing: $!'";
+      $f->binmode(':bytes');
       push @files, $f;
   }
 
@@ -88,7 +93,7 @@ sub run {
   my $buffer_size = 1024;
   my $buffer;
 
-  while ( sysread( STDIN, $buffer, $buffer_size ) > 0 ) {
+  while ( sysread( $stdin, $buffer, $buffer_size ) > 0 ) {
       for my $fh ( @files ) {
           syswrite $fh, $buffer;
       }
